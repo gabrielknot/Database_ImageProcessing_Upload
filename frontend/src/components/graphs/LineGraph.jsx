@@ -2,7 +2,7 @@ import React from "react";
 import { scaleLinear } from "d3-scale";
 import { timeFormat } from "d3-time-format";
 import {extent} from "d3-array";
-import {value_result} from "../../template/value_result"
+import {value_result} from "../../src/template/value_result"
 
 function DataFromProps(props) {
   var propsArray = [...props.registers]
