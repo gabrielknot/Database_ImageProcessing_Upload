@@ -1,13 +1,16 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
+
+	"github.com/gorilla/mux"
 )
 
 type Task struct {
@@ -44,17 +47,18 @@ var Tasks []Task = []Task{
 	},
 }
 
-func getTask(w http.ResponseWriter, r *http.Request) {
-
+func getDataBase(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(Tasks)
 }
 
-func postTask(w http.ResponseWriter, r *http.Request) {
+func postDataBase(w http.ResponseWriter, r *http.Request) {
 
 	body, erro := ioutil.ReadAll(r.Body)
 	var new_Task Task
 
 	if erro != nil {
+		w.WriteHeader(http.StatusBadRequest)
 		return
 
 	} else {
@@ -71,114 +75,99 @@ func postTask(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(new_Task)
 }
 
-func deleteTask(w http.ResponseWriter, r *http.Request, URL_slices []string) {
+func deleteDataBase(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
 
-	index := searchTask(w, r, URL_slices)
-	if index < 0 {
+	vars := mux.Vars(r)
+	id, _ := strconv.Atoi(vars["databaseID"])
+	if id <= 0 {
 		w.WriteHeader(http.StatusNoContent)
 	} else {
-		for index < len(Tasks)-1 {
-			Tasks[index] = Tasks[index+1]
-			index++
+		for id < len(Tasks)-1 {
+			Tasks[id] = Tasks[id+1]
+			id++
 		}
 		Tasks = Tasks[:len(Tasks)-1]
 	}
 }
 
-func putTask(w http.ResponseWriter, r *http.Request, URL_slices []string) {
-	index := searchTask(w, r, URL_slices)
-	if index < 0 {
-		postTask(w, r)
+func putDataBase(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
+
+	vars := mux.Vars(r)
+	id, _ := strconv.Atoi(vars["databaseID"])
+	if id <= 0 {
+		postDataBase(w, r)
 	} else {
 		body, _ := ioutil.ReadAll(r.Body)
 		var new_Task Task
 		json.Unmarshal(body, &new_Task)
-		new_Task.Id, _ = strconv.Atoi(URL_slices[3])
-		Tasks[index] = new_Task
+		new_Task.Id = id
+		Tasks[id] = new_Task
 		json.NewEncoder(w).Encode(new_Task)
 	}
 }
 
-func searchTask(w http.ResponseWriter, r *http.Request, URL_slices []string) int {
+func searchDataBase(w http.ResponseWriter, r *http.Request) {
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Add("Content-Type", "application/json")
 
-	if len(URL_slices) < 4 {
+	vars := mux.Vars(r)
+	id, _ := strconv.Atoi(vars["databaseID"])
 
-		w.WriteHeader(http.StatusNoContent)
-		return -1
-	} else if len(URL_slices) == 4 || URL_slices[len(URL_slices)-1] == "" {
+	for _, dataBase := range Tasks {
+		if dataBase.Id == id {
 
-		id, _ := strconv.Atoi(URL_slices[3])
-
-		for i := 0; i < len(Tasks); i++ {
-			if Tasks[i].Id == id {
-
-				w.WriteHeader(http.StatusFound)
-				json.NewEncoder(w).Encode(Tasks[i])
-				return i
-
-			}
+			w.WriteHeader(http.StatusFound)
+			json.NewEncoder(w).Encode(dataBase)
+			return
 		}
-
-		w.WriteHeader(http.StatusNoContent)
 	}
-	return -1
+	w.WriteHeader(http.StatusNoContent)
+
 }
 
-func http_Tasks(w http.ResponseWriter, r *http.Request) {
-
-	w.Header().Set("Content-Type", "application/json")
-
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-
-	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-
-	if r.Method == "OPTIONS" {
-
-		return
-	}
-	URL_slices := strings.Split(r.URL.Path, "/")
-
-	if len(URL_slices) < 4 || len(URL_slices) == 4 && URL_slices[3] == "" {
-
-		if r.Method == "GET" {
-			getTask(w, r)
-
-		} else if r.Method == "POST" {
-			postTask(w, r)
-
-		}
-	} else if len(URL_slices) >= 4 || URL_slices[len(URL_slices)-1] == "" {
-		if r.Method == "GET" {
-			searchTask(w, r, URL_slices)
-
-		} else if r.Method == "DELETE" {
-			deleteTask(w, r, URL_slices)
-
-		} else if r.Method == "PUT" {
-			putTask(w, r, URL_slices)
-		}
-	} else {
-
-		w.WriteHeader(http.StatusNotFound)
-	}
-}
-
-func configureRoutes() {
-	http.HandleFunc("/api/todos/", http_Tasks)
-	http.HandleFunc("/api/todos", http_Tasks)
-
+func configureRoutes(router *mux.Router) {
+	router.HandleFunc("/api/databases/{databaseID}", searchDataBase).Methods("GET")
+	router.HandleFunc("/api/databases", getDataBase).Methods("GET")
+	router.HandleFunc("/api/databases", postDataBase).Methods("POST")
+	router.HandleFunc("/api/databases/{databaseID}", putDataBase).Methods("PUT")
+	router.HandleFunc("/api/databases/{databaseID}", deleteDataBase).Methods("DELETE")
 }
 
 func configureServer() {
-	configureRoutes()
+	router := mux.NewRouter().StrictSlash(true)
 
-	log.Fatal(http.ListenAndServe(":3003", nil))
+	configureRoutes(router)
+
+	log.Fatal(http.ListenAndServe(":3003", router))
 }
 
+const (
+	host     = "localhost"
+	port     = 5432
+	user     = "postgres"
+	password = "your-password"
+	dbname   = "calhounio_demo"
+)
+
 func main() {
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+		"password=%s dbname=%s sslmode=disable",
+		host, port, user, password, dbname)
+
+	db, err := sql.Open("postgres", psqlInfo)
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	err = db.Ping()
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("Successfully connected!")
+
 	configureServer()
 }
