@@ -12,22 +12,13 @@ export default class imageCropper extends Component {
         this.imgRef = React.createRef()
     }
     _crop() {
-        this.setState({ ...this.state,imgDist: this.cropper.getCroppedCanvas().toDataURL("image/png")});
+        const canvasImgDataURL = this.cropper.getCroppedCanvas().toDataURL("image/png")
+        console.log(canvasImgDataURL)
+        this.setState({ ...this.state,imgDist: canvasImgDataURL});
     }
 
     onCropperInit(cropper) {
         this.cropper = cropper;
-    }
-
-    onDragEnd(){
-        const cropperImageData = this.cropper.getCroppedCanvas().toDataURL("image/png")
-        console.log(`the current data is altered from ${this.state.imgDist.length} to ${cropperImageData.length}`)
-        this.setState({ ...this.state,imgDist: cropperImageData})    
-    }
-
-    componentDidMount(){
-        const img = this.props.src
-
     }
 
     render() {
@@ -42,13 +33,12 @@ export default class imageCropper extends Component {
                         // Cropper.js options 
                         initialAspectRatio={16 / 9}
                         guides={false}
-                        crop={this._crop.bind(this)}
                         onInitialized={this.onCropperInit.bind(this)}
                     />
                     <div role = "buttom" 
                          className="submit-buttom" 
-                         onClick={_=>console.log('aaaaaaaaa')}>
-                             submit
+                         onClick={this._crop.bind(this)}>
+                             <span>submit </span>
                          </div>
                 </div>
                 
