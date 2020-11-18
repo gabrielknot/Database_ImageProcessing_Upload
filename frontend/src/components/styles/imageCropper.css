@@ -1,0 +1,16 @@
+.image-cropper {
+    align-items: center;
+    align-self: center;
+}
+
+.container{
+    margin-left: 33%;
+    align-self: center;
+    text-align: center; /* ensures the image is always in the h-middle */
+    overflow: hidden; /* hide the cropped portion */
+}
+
+.submit-buttom{
+    cursor: pointer;
+    
+}
