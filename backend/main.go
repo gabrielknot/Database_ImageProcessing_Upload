@@ -9,43 +9,60 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"database/sql"
+	"fmt"
+
+	_ "github.com/lib/pq"
 )
 
-type Task struct {
-	Id          int       `json:"id,omitempty"`
-	Description string    `json:"description,omitempty"`
-	Done        string    `json:"done,omitempty"`
-	CreatedAt   time.Time `json:"createdAt,omitempty"`
+type Database struct {
+	ID     int      `json:"id,omitempty"`
+	Dbname string   `json:"dbname,omitempty"`
+	Images []string `json:"done,omitempty"`
 }
 
-var Tasks []Task = []Task{
-	Task{
-		Id:          1,
-		Description: "Capinar Mato",
-		Done:        "false",
-		CreatedAt:   time.Now(),
-	},
-	Task{
-		Id:          2,
-		Description: "Entender suas limitações",
-		Done:        "false",
-		CreatedAt:   time.Now(),
-	},
-	Task{
-		Id:          3,
-		Description: "Não agir se não tiver convicção",
-		Done:        "false",
-		CreatedAt:   time.Now(),
-	},
-	Task{
-		Id:          4,
-		Description: "Não agir se não tiver convicção",
-		Done:        "false",
-		CreatedAt:   time.Now(),
-	},
+const (
+	host     = "localhost"
+	port     = 3001
+	user     = "docker"
+	password = "docker"
+	dbname   = "docker"
+)
+var db *sql.DB
+
+func databaseConnection() {
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+		"password=%s dbname=%s sslmode=disable",
+		host, port, user, password, dbname)
+	var err = sql.ErrConnDone
+	db, err = sql.Open("postgres", psqlInfo)
+	if err != nil {
+		panic(err)
+	}
+	
+	err = db.Ping()
+	if err != nil {
+		panic(err)
+	}
+	_, errorOnCreate := db.Exec(
+		"CREATE TABLE [IF NOT EXISTS] DATABASES ("+
+		"ID serial PRIMARY KEY,"+
+		"Dbname VARCHAR ( 50 ) UNIQUE NOT NULL"+
+		"images TEXT []"+
+		")")
+	if errorOnCreate != nil {
+		panic(errorOnCreate)
+	}
+
+	fmt.Println("Successfully connected!")
 }
+
+
+
 
 func getDataBase(w http.ResponseWriter, r *http.Request) {
+	registers, errorOnCreate := db.Query('SELECT * FROM DATABASES')
+
 	w.Header().Add("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(Tasks)
 }
@@ -142,6 +159,6 @@ func configureServer() {
 }
 
 func main() {
-
+	databaseConnection()
 	configureServer()
 }
