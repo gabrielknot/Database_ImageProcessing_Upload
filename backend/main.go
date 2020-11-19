@@ -171,11 +171,10 @@ func putDataBase(w http.ResponseWriter, r *http.Request) {
 
 	json.Unmarshal(body, &mdifiedDatabase)
 
-	_, execError := db.Exec("UPDATE DATABASES SET Dbname = ?, images = ? WHERE ID = ?", modmdifiedDatabase.Dbname, mdifiedDatabase.images, id)
-	if execErorr != nil {
-		panic(execErorr)
+	_, execError := db.Exec("UPDATE DATABASES SET Dbname = ?, images = ? WHERE ID = ?", mdifiedDatabase.Dbname, mdifiedDatabase.images, id)
+	if execError != nil {
+		panic(execError)
 		w.WriteHeader(http.StatusInternalServerError)
-		return
 	}
 
 	json.NewEncoder(w).Encode(mdifiedDatabase)
