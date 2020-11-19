@@ -8,9 +8,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gorilla/mux"
 	"database/sql"
 	"fmt"
+
+	"github.com/gorilla/mux"
 
 	_ "github.com/lib/pq"
 )
@@ -28,43 +29,73 @@ const (
 	password = "docker"
 	dbname   = "docker"
 )
+
 var db *sql.DB
 
 func databaseConnection() {
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
 		"password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname)
-	var err = sql.ErrConnDone
+	var err error
+
 	db, err = sql.Open("postgres", psqlInfo)
+
 	if err != nil {
 		panic(err)
 	}
-	
+
 	err = db.Ping()
 	if err != nil {
 		panic(err)
+		return
 	}
-	_, errorOnCreate := db.Exec(
-		"CREATE TABLE [IF NOT EXISTS] DATABASES ("+
-		"ID serial PRIMARY KEY,"+
-		"Dbname VARCHAR ( 50 ) UNIQUE NOT NULL"+
-		"images TEXT []"+
-		")")
+	var errorOnCreate error
+
+	_, errorOnCreate = db.Exec(
+		"CREATE TABLE [IF NOT EXISTS] DATABASES (" +
+			"ID serial PRIMARY KEY," +
+			"Dbname VARCHAR ( 50 ) UNIQUE NOT NULL" +
+			"images TEXT []" +
+			")")
+
 	if errorOnCreate != nil {
 		panic(errorOnCreate)
+		return
 	}
 
 	fmt.Println("Successfully connected!")
 }
 
-
-
-
 func getDataBase(w http.ResponseWriter, r *http.Request) {
-	registers, errorOnCreate := db.Query('SELECT * FROM DATABASES')
 
+	registers, errorOnGetRows := db.Query("SELECT ID, Dbname , images  FROM DATABASES")
+
+	if errorOnGetRows != nil {
+		panic(errorOnGetRows)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	var databases []Database = make([]Database, 0)
+
+	for registers.Next() {
+		var database Database
+		scanErorr := registers.Scan(&database.ID, &database.Dbname, &database.Images)
+		if scanErorr != nil {
+			panic(scanErorr)
+			continue
+		}
+
+		databases = append(databases, database)
+	}
+
+	closeRergistersError := registers.Close()
+
+	if closeRergistersError != nil {
+		panic(closeRergistersError)
+		continue
+	}
 	w.Header().Add("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(Tasks)
+	json.NewEncoder(w).Encode(databases)
 }
 
 func postDataBase(w http.ResponseWriter, r *http.Request) {
