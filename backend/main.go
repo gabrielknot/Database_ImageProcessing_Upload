@@ -92,8 +92,8 @@ func getDataBase(w http.ResponseWriter, r *http.Request) {
 
 	if closeRergistersError != nil {
 		panic(closeRergistersError)
-		continue
 	}
+
 	w.Header().Add("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(databases)
 }
@@ -101,7 +101,7 @@ func getDataBase(w http.ResponseWriter, r *http.Request) {
 func postDataBase(w http.ResponseWriter, r *http.Request) {
 
 	body, erro := ioutil.ReadAll(r.Body)
-	var new_Task Task
+	var newDataBase Database
 
 	if erro != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -156,20 +156,24 @@ func putDataBase(w http.ResponseWriter, r *http.Request) {
 
 func searchDataBase(w http.ResponseWriter, r *http.Request) {
 
-	w.Header().Add("Content-Type", "application/json")
-
 	vars := mux.Vars(r)
 	id, _ := strconv.Atoi(vars["databaseID"])
 
-	for _, dataBase := range Tasks {
-		if dataBase.Id == id {
+	registers := db.QueryRow("SELECT ID, Dbname , images  FROM DATABASES WHERE ID = ?", id)
 
-			w.WriteHeader(http.StatusFound)
-			json.NewEncoder(w).Encode(dataBase)
-			return
-		}
+	var database Database
+
+	scanErorr := registers.Scan(&database.ID, &database.Dbname, &database.Images)
+
+	w.Header().Add("Content-Type", "application/json")
+	if scanErorr != nil {
+		panic(scanErorr)
+		w.WriteHeader(http.StatusNoContent)
+		return
 	}
-	w.WriteHeader(http.StatusNoContent)
+
+	w.WriteHeader(http.StatusFound)
+	json.NewEncoder(w).Encode(dataBase)
 
 }
 
