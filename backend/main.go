@@ -19,7 +19,7 @@ import (
 type Database struct {
 	ID     int      `json:"id,omitempty"`
 	Dbname string   `json:"dbname,omitempty"`
-	Images []string `json:"done,omitempty"`
+	images []string `json:"done,omitempty"`
 }
 
 const (
@@ -79,7 +79,7 @@ func getDataBase(w http.ResponseWriter, r *http.Request) {
 
 	for registers.Next() {
 		var database Database
-		scanErorr := registers.Scan(&database.ID, &database.Dbname, &database.Images)
+		scanErorr := registers.Scan(&database.ID, &database.Dbname, &database.images)
 		if scanErorr != nil {
 			panic(scanErorr)
 			continue
@@ -142,16 +142,34 @@ func putDataBase(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 	id, _ := strconv.Atoi(vars["databaseID"])
-	if id <= 0 {
-		postDataBase(w, r)
-	} else {
-		body, _ := ioutil.ReadAll(r.Body)
-		var new_Task Task
-		json.Unmarshal(body, &new_Task)
-		new_Task.Id = id
-		Tasks[id] = new_Task
-		json.NewEncoder(w).Encode(new_Task)
+
+	registers := db.QueryRow("SELECT ID, Dbname , images  FROM DATABASES WHERE ID = ?", id)
+
+	var database Database
+
+	scanErorr := registers.Scan(&database.ID, &database.Dbname, &database.images)
+
+	w.Header().Add("Content-Type", "application/json")
+	if scanErorr != nil {
+		panic(scanErorr)
+		w.WriteHeader(http.StatusNoContent)
+		return
 	}
+
+	body, _ := ioutil.ReadAll(r.Body)
+	var mdifiedDatabase Database
+
+	json.Unmarshal(body, &mdifiedDatabase)
+
+	_, execError := db.Exec("UPDATE DATABASES SET Dbname = ?, images = ? WHERE ID = ?", modmdifiedDatabase.Dbname, mdifiedDatabase.images, id)
+	if execErorr != nil {
+		panic(execErorr)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(mdifiedDatabase)
+
 }
 
 func searchDataBase(w http.ResponseWriter, r *http.Request) {
