@@ -190,7 +190,7 @@ func searchDataBase(w http.ResponseWriter, r *http.Request) {
 
 	var database Database
 
-	scanErorr := registers.Scan(&database.ID, &database.Dbname, &database.Images)
+	scanErorr := registers.Scan(&database.ID, &database.Dbname, &database.images)
 
 	w.Header().Add("Content-Type", "application/json")
 	if scanErorr != nil {
