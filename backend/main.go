@@ -20,7 +20,7 @@ import (
 type Database struct {
 	ID     int      `json:"id,omitempty"`
 	Dbname string   `json:"dbname,omitempty"`
-	images []string `json:"done,omitempty"`
+	Images []string `json:"images,omitempty"`
 }
 
 const (
@@ -84,7 +84,7 @@ func getDataBase(w http.ResponseWriter, r *http.Request) {
 
 	for registers.Next() {
 		var database Database
-		scanErorr := registers.Scan(&database.ID, &database.Dbname, &database.images)
+		scanErorr := registers.Scan(&database.ID, &database.Dbname, &database.Images)
 		if scanErorr != nil {
 			panic(scanErorr)
 			continue
@@ -115,7 +115,7 @@ func postDataBase(w http.ResponseWriter, r *http.Request) {
 
 	json.Unmarshal(body, &newDataBase)
 
-	_, execError := db.Exec("INSERT INTO DATABASES (Dbname, images) VALUES (?, ?)", newDataBase.Dbname, newDataBase.images)
+	_, execError := db.Exec("INSERT INTO DATABASES (Dbname, images) VALUES (?, ?)", newDataBase.Dbname, newDataBase.Images)
 
 	if execError != nil {
 		panic(execError)
@@ -136,7 +136,7 @@ func deleteDataBase(w http.ResponseWriter, r *http.Request) {
 
 	var database Database
 
-	scanErorr := registers.Scan(&database.ID, &database.Dbname, &database.images)
+	scanErorr := registers.Scan(&database.ID, &database.Dbname, &database.Images)
 
 	w.Header().Add("Content-Type", "application/json")
 	if scanErorr != nil {
@@ -145,7 +145,7 @@ func deleteDataBase(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, execError := db.Exec("DELETE FROM DATABASES WHERE ID = ?", database.images, id)
+	_, execError := db.Exec("DELETE FROM DATABASES WHERE ID = ?", database.Images, id)
 
 	if execError != nil {
 		panic(execError)
@@ -166,7 +166,7 @@ func putDataBase(w http.ResponseWriter, r *http.Request) {
 
 	var database Database
 
-	scanErorr := registers.Scan(&database.ID, &database.Dbname, &database.images)
+	scanErorr := registers.Scan(&database.ID, &database.Dbname, &database.Images)
 
 	w.Header().Add("Content-Type", "application/json")
 	if scanErorr != nil {
@@ -180,7 +180,7 @@ func putDataBase(w http.ResponseWriter, r *http.Request) {
 
 	json.Unmarshal(body, &mdifiedDatabase)
 
-	_, execError := db.Exec("UPDATE DATABASES SET Dbname = ?, images = ? WHERE ID = ?", mdifiedDatabase.Dbname, mdifiedDatabase.images, id)
+	_, execError := db.Exec("UPDATE DATABASES SET Dbname = ?, images = ? WHERE ID = ?", mdifiedDatabase.Dbname, mdifiedDatabase.Images, id)
 	if execError != nil {
 		panic(execError)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -199,7 +199,7 @@ func searchDataBase(w http.ResponseWriter, r *http.Request) {
 
 	var database Database
 
-	scanErorr := registers.Scan(&database.ID, &database.Dbname, &database.images)
+	scanErorr := registers.Scan(&database.ID, &database.Dbname, &database.Images)
 
 	w.Header().Add("Content-Type", "application/json")
 	if scanErorr != nil {
