@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"time"
 
 	"database/sql"
 	"fmt"
@@ -52,15 +51,19 @@ func databaseConnection() {
 	var errorOnCreate error
 
 	_, errorOnCreate = db.Exec(
-		"CREATE TABLE [IF NOT EXISTS] DATABASES (" +
+		"CREATE TABLE DATABASES (" +
 			"ID serial PRIMARY KEY," +
-			"Dbname VARCHAR ( 50 ) UNIQUE NOT NULL" +
+			"Dbname VARCHAR ( 50 ) UNIQUE NOT NULL," +
 			"images TEXT []" +
 			")")
 
 	if errorOnCreate != nil {
-		panic(errorOnCreate)
-		return
+		_, errorOnGetRows := db.Query("SELECT ID, Dbname , images  FROM DATABASES")
+
+		if errorOnGetRows != nil {
+			panic(errorOnCreate)
+			return
+		}
 	}
 
 	fmt.Println("Successfully connected!")
@@ -101,24 +104,25 @@ func getDataBase(w http.ResponseWriter, r *http.Request) {
 func postDataBase(w http.ResponseWriter, r *http.Request) {
 
 	body, erro := ioutil.ReadAll(r.Body)
-	var newDataBase Database
 
 	if erro != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
-
-	} else {
-		w.WriteHeader(http.StatusCreated)
-
-		json.Unmarshal(body, &new_Task)
-		new_Task.Id = Tasks[len(Tasks)-1].Id + 1
-		new_Task.Done = "false"
-		new_Task.CreatedAt = time.Now()
-		Tasks = append(Tasks, new_Task)
-
 	}
+	var newDataBase Database
 
-	json.NewEncoder(w).Encode(new_Task)
+	json.Unmarshal(body, &newDataBase)
+
+	_, execError := db.Exec("INSERT INTO DATABASES (Dbname, images) VALUES (?, ?)", newDataBase.Dbname, newDataBase.images)
+
+	if execError != nil {
+		panic(execError)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusCreated)
+
+	json.NewEncoder(w).Encode(newDataBase)
 }
 
 func deleteDataBase(w http.ResponseWriter, r *http.Request) {
@@ -126,7 +130,7 @@ func deleteDataBase(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, _ := strconv.Atoi(vars["databaseID"])
 
-	registers := db.QueryRow("SELECT ID, Dbname , images  FROM DATABASES WHERE ID = ?", id)
+	registers := db.QueryRow("SELECT ID FROM DATABASES WHERE ID = ?", id)
 
 	var database Database
 
@@ -146,6 +150,9 @@ func deleteDataBase(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
+	w.WriteHeader(http.StatusNoContent)
+
 }
 
 func putDataBase(w http.ResponseWriter, r *http.Request) {
@@ -200,7 +207,7 @@ func searchDataBase(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusFound)
-	json.NewEncoder(w).Encode(dataBase)
+	json.NewEncoder(w).Encode(database)
 
 }
 
