@@ -1,15 +1,13 @@
-#**pt-br version**<h6>
-<<<<<<< HEAD
-	**Database Image Processing Upload**<h1>
-=======
+**pt-br version**<h6>
+**Database Image Processing Upload**<h1>
+
 ##**Database Image Processing Upload**<h6>
->>>>>>> f1ee44fe085f6a5048e024cd14f4ad650f1c28a5
 ## 
 ## O objetivo desta aplicação é a manipulação de um banco de dados
 ## através de um frontend construido com javascript.
 ## 
-<<<<<<< HEAD
-	Para rodar esta aplicação são necessárias as seguintes **dependencias:**<h2>
+
+Para rodar esta aplicação são necessárias as seguintes **dependencias:**<h2>
 ##
 ## 1 - Docker
 ## 2 - Go **(golang)**
@@ -25,7 +23,7 @@
 ## 6 -**yarn start**
 ##
 **Depois que todos os processos concluirem a aplicação estará rodando em lobalhost:3003**
-=======
+
 ####Para rodar esta aplicação são necessárias as seguintes **dependencias:**<h2>
 ##
 ##* Docker
@@ -41,8 +39,7 @@
 ## 5 -**cd ../fronted**
 ## 6 -**yarn start**
 ##
-####**Depois que todos os processos concluirem a aplicação estará rodando em lobalhost:3003**
->>>>>>> f1ee44fe085f6a5048e024cd14f4ad650f1c28a5
+####**Depois que todos os processos concluirem a aplicação estará rodando em localhost:3003**
 
 
 
