@@ -1,11 +1,13 @@
 import './App.css';
+import ApiContextProvider from './components/apiContextProvider';
 import ImageCropper from './components/imageCropper'
-import logo from './logo192.png'
 
 function App() {
   return (
     <div className="App">
-      <ImageCropper src = {logo}/>
+      <ApiContextProvider>
+        <ImageCropper/>
+      </ApiContextProvider>
     </div>
   );
 }
