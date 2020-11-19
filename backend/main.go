@@ -12,6 +12,8 @@ import (
 
 	"github.com/gorilla/mux"
 
+	"github.com/rs/cors"
+
 	_ "github.com/lib/pq"
 )
 
@@ -211,20 +213,22 @@ func searchDataBase(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func configureRoutes(router *mux.Router) {
+func configureServer() {
+
+	router := mux.NewRouter().StrictSlash(true)
+
 	router.HandleFunc("/api/databases/{databaseID}", searchDataBase).Methods("GET")
 	router.HandleFunc("/api/databases", getDataBase).Methods("GET")
 	router.HandleFunc("/api/databases", postDataBase).Methods("POST")
 	router.HandleFunc("/api/databases/{databaseID}", putDataBase).Methods("PUT")
 	router.HandleFunc("/api/databases/{databaseID}", deleteDataBase).Methods("DELETE")
-}
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:3000"},
+		AllowCredentials: true,
+	})
 
-func configureServer() {
-	router := mux.NewRouter().StrictSlash(true)
-
-	configureRoutes(router)
-
-	log.Fatal(http.ListenAndServe(":3003", router))
+	handler := c.Handler(router)
+	log.Fatal(http.ListenAndServe(":3003", handler))
 }
 
 func main() {
