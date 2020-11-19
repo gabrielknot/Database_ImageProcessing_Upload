@@ -1,19 +1,21 @@
-package createTable
+/* package main
 
 import (
 	"database/sql"
 	"fmt"
+
+	_ "github.com/lib/pq"
 )
 
 const (
 	host     = "localhost"
-	port     = 5432
-	user     = "postgres"
-	password = "postgres"
-	dbname   = "imagesDatabase"
+	port     = 3001
+	user     = "docker"
+	password = "docker"
+	dbname   = "docker"
 )
 
-func createTable() {
+func main() {
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
 		"password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname)
@@ -31,3 +33,4 @@ func createTable() {
 
 	fmt.Println("Successfully connected!")
 }
+*/
