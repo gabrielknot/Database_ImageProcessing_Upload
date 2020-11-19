@@ -122,23 +122,33 @@ func postDataBase(w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteDataBase(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Content-Type", "application/json")
 
 	vars := mux.Vars(r)
 	id, _ := strconv.Atoi(vars["databaseID"])
-	if id <= 0 {
+
+	registers := db.QueryRow("SELECT ID, Dbname , images  FROM DATABASES WHERE ID = ?", id)
+
+	var database Database
+
+	scanErorr := registers.Scan(&database.ID, &database.Dbname, &database.images)
+
+	w.Header().Add("Content-Type", "application/json")
+	if scanErorr != nil {
+		panic(scanErorr)
 		w.WriteHeader(http.StatusNoContent)
-	} else {
-		for id < len(Tasks)-1 {
-			Tasks[id] = Tasks[id+1]
-			id++
-		}
-		Tasks = Tasks[:len(Tasks)-1]
+		return
+	}
+
+	_, execError := db.Exec("DELETE FROM DATABASES WHERE ID = ?", database.images, id)
+
+	if execError != nil {
+		panic(execError)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 }
 
 func putDataBase(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Content-Type", "application/json")
 
 	vars := mux.Vars(r)
 	id, _ := strconv.Atoi(vars["databaseID"])
@@ -161,11 +171,10 @@ func putDataBase(w http.ResponseWriter, r *http.Request) {
 
 	json.Unmarshal(body, &mdifiedDatabase)
 
-	_, execError := db.Exec("UPDATE DATABASES SET Dbname = ?, images = ? WHERE ID = ?", modmdifiedDatabase.Dbname, mdifiedDatabase.images, id)
-	if execErorr != nil {
-		panic(execErorr)
+	_, execError := db.Exec("UPDATE DATABASES SET Dbname = ?, images = ? WHERE ID = ?", mdifiedDatabase.Dbname, mdifiedDatabase.images, id)
+	if execError != nil {
+		panic(execError)
 		w.WriteHeader(http.StatusInternalServerError)
-		return
 	}
 
 	json.NewEncoder(w).Encode(mdifiedDatabase)
