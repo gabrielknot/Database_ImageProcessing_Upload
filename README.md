@@ -15,9 +15,12 @@ Para rodar esta aplicação são necessárias as seguintes **dependencias:**<h2>
 	 1 - git clone github.com/gabrielknot/Database_ImageProcessing_Upload
 	 2 - cd DatabaseDatabase_ImageProcessing_Upload/backend
 	 3 - docker run --rm -p 3001:5432 --name pg_test eg_postgresql
-	 4 - docker run --rm -P --name databaseImageProcessingBackend eg_backendGolang**
-	 5 -**cd ../fronted**
-	 6 -**yarn start**
+	 4 - go get github.com/gorilla/mux
+	 5 - go get github.com/rs/cors
+	 6 - go get github.com/lib/pq
+	 7 - go run main.go
+	 5 - cd ../fronted
+	 6 - yarn start
 **Depois que todos os processos concluirem a aplicação estará rodando em localhost:3003**
 
 

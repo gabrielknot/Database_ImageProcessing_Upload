@@ -1,0 +1,79 @@
+.imageDownload.a{
+    color: #999;
+    text-decoration: none;
+}
+.imageDownload {
+    border-radius: 4px;
+    background-color: #5dc47b;
+    border: none;
+    color: #FFFFFF;
+    text-align: center;
+    font-size: 20px;
+    padding: 5px;
+    transition: all 0.5s;
+    cursor: pointer;
+    margin: 5px;
+    margin-left: 10px;
+  }
+  
+  .imageDownload span {
+    cursor: pointer;
+    display: inline-block;
+    position: relative;
+    transition: 0.5s;
+  }
+  
+  .imageDownload span:after {
+    content: '\00bb';
+    position: absolute;
+    opacity: 0;
+    top: 0;
+    right: -20px;
+    transition: 0.5s;
+  }
+  
+  .imageDownload:hover span {
+    padding-right: 25px;
+  }
+
+  .imageDownload:hover span:after {
+    opacity: 1;
+    right: 0;
+  }
+.imageDownload:hover {background-color: #5da872}
+
+.imageDownload:active {
+    background-color: #9dd69f;
+    box-shadow: 0 5px #666;
+    transform: translateY(4px);
+  }
+.imageUpload{
+    border: 1px dashed #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 10%;
+    height: 30%;
+    max-width: 15%;
+    transition: height 0.2s ease;
+}
+.dropContainer.isDragActive{
+    border-color: #78e5d5;
+
+}
+.dropContainer.isDragReject{
+    border-color: #e578;   
+}
+
+.dragMensage{
+    font-size: small;
+    color:#999;
+    justify-content: center;
+    align-items: center;
+    padding: 15px 0;
+}
+.dragMensage.success{
+    color: #78e5d5;
+}
+.dragMensage.error{
+    color: #e578;
+}

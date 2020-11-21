@@ -1,0 +1,26 @@
+
+.deleteDatabase{
+    justify-content: center;
+}
+
+.deleteDatabase.deleteDatabaseButtom {
+    width: 90px;
+    background-color: rgba(182, 44, 74, 0.533);;
+    border: none;
+    color: #FFFFFF;
+    text-align: center;
+    font-size: 20px;
+    padding: 5px;
+    transition: all 0.5s;
+    cursor: pointer;
+    margin: 5px;
+    margin-bottom: 10px;
+  }
+  
+  .deleteDatabase.deleteDatabaseButtom:hover {background-color: #e578;}
+
+  .deleteDatabase.deleteDatabaseButtom:active {
+    background-color: rgba(138, 22, 47, 0.849);;
+    box-shadow: 0 5px #666;
+    transform: translateY(4px);
+  }

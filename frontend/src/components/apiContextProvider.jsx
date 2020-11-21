@@ -1,102 +1,148 @@
 import React, {Component, createContext} from 'react';
-import axios from 'axios'
+import axios from 'axios';
+import ImageCropper from './imageCropper';
+import DatabaseList from './databaseList';
+import ImageDownload from './imageDownload';
+import ImageUpload from './imageUpload';
+import ImageListContainer from './imagesListContainer';
+import DeleteDatabaseBuuttom from './deleteDatabaseButtom'
+
+
+import './styles/apiContext.css'
 
 const APIstate = {
-    databases:[],
+    databases:[{id:-1,dbname:"None databases",images:[]}],
     currentImage:'',
-    handleAddImageInDataBase:_=>{},
-    handleRemoveImageInDataBase:_=>{},
-    handleAddDataBase:_=>{},
-    handleRemoveDataBase:_=>{},
-    setCurrentImage:_=>{}
-
+    currentImageIndex:0,
+    currentDatabase:{},
+    currentDatabaseIndex:-1,
 }
 
-const contextAPI = createContext(APIstate)
 
-const URLapi = "http://localhost:3003/api/databases"
+const Api = axios.create({
+            baseURL:"http://localhost:3003/api/databases/"
 
+        })
 export default class apiContextProvider extends Component {
+      
     constructor(){
         super();
-        this.state = APIstate
-
+        this.state = {...APIstate.data}
         this.refresh = this.refresh.bind(this) 
 
-
     }
-
     refresh(){
-        axios.get(`${URLapi}`)
-         .then(resp => this.refreshState(URLapi,resp))
+        Api.get("/")
+        .then(resp => {
+            if(resp.data != []){
+                    this.setState({ 
+                        ...this.state,
+                        currentDatabase: this.state.currentDatabaseIndex>=0?
+                        resp.data[this.state.currentDatabaseIndex]:{id:-1,dbname:"None databases",images:[]},
+                        databases:resp.data
+                })
+            }
+        })
         
     }
-    
-    refreshState(resp) {
-        
-        return this.setState({ ...this.state, databases: resp.data })
-       
-    }
-    
-    handleAddDataBase(dbname){
-
-        axios.post(URLapi, {id: -1, dbname: dbname, images:[]}).then(_=> this.refresh())
-    }
-
-    handleRemoveDatabase(database){
-    
-        axios.delete(`${URLapi}/${database.id}`).then(_=> this.refresh()).catch(_=> this.refresh())
-    }
-
-
     handleAddImageInDataBase(database,img){
-        this.setState({...this.state,databases: this.state.databases
-            .map(element => {
-                if(element === database){
-                    
-                    element.images = element.images.push(img)
-                }
-                return element
-            })
-        });
-
-        axios.put(`${URLapi}/${database.id}`).then(_=> this.refresh()).then(_=> this.refresh())
+        const newDatabase = {...database,images: database.images.push(img)}
+        Api.put(`/${newDatabase.id}`,newDatabase).then(_=>this.refresh())
     }
-
-    handleRemoveImageInDataBase(database,key){
-        this.setState({...this.state,databases: this.state.databases
-            .map(element => {
-                if(element === database){
-                    
-                    element.images = element.images.splice(key,1)
-                }
-                return element
-            })
-            });
-        
-        axios.put(`${URLapi}/${database.id}`).then(_=> this.refresh()).catch(_=> this.refresh())
+    handleRemoveImageInDataBase(database, imgKey){
+        const newDatabase = {...database,images: database.images.splice(imgKey,1)}
+        Api.put(`/${database.id}`,newDatabase).then(_=>this.refresh())
     }
-    
-    setCurrentImage(img){
-        this.setState({...this.state, currentImage: img})
+    handlePutCurrentImage(currentDatabase,img,imgKey){
+        const newDatabase = {...currentDatabase,images:currentDatabase.images.splice(imgKey,1,img)}
+        Api.put(`/${newDatabase.id}`,newDatabase).then(_=>this.refresh())
     }
-
-    componentDidMount(){
+    handleAddDataBase(newDtabaseName){
+        Api.post("/",{id:-1,dbname:newDtabaseName,images:[""]}).then(_=>this.refresh())
+    }
+    handleRemoveDataBase(database){
+        Api.delete(`${database.id}`).then(_=>this.refresh())
+    }
+    setCurrentImage(imgDataURL){
         this.setState({
             ...this.state,
-            handleAddImageInDataBase: (database,img)=> this.handleAddImageInDataBase(database,img),
-            handleRemoveImageInDataBase: (database,key)=> this.handleRemoveImageInDataBase(database,key),
-            handleAddDataBase: (dbname)=> this.handleAddDataBase(dbname),
-            handleRemoveDataBase: (database)=> this.handleRemoveDataBase(database)        
-            })
-        this.refresh()
-    }    
-
+            currentImage:imgDataURL
+        })
+    }
+    setCurrentImageIndex(imgKey){
+        this.setState({
+            ...this.state,
+            currentImageIndex:imgKey
+        })
+    }
+    setCurrentImageIndex(databaseKey){
+        this.setState({
+            ...this.state,
+            currentDatabaseIndex:databaseKey
+        })
+    }
+    componentDidMount(){
+        console.log(this.state)
+        Api.get("/")
+        .then(resp => {
+            if(resp.data != []){
+                    this.setState({ 
+                        ...this.state,
+                        currentDatabase: this.state.currentDatabaseIndex>=0?
+                        resp.data[this.state.currentDatabaseIndex]:{id:-1,dbname:"None databases",images:[]},
+                        databases:resp.data
+                })
+            }
+        })
+    }
+        
     render() {
         return (
-            <contextAPI.Provider value={this.state}>
-                {this.props.children}
-            </contextAPI.Provider>    
+            <div className='api-provider'>
+                <div className="leftBar">                    
+                    {{/* <DatabaseList
+                        databases={_=>this.state.databases}
+                        currentDatabaseID={this.state.currentDatabase?.ID}
+                        handleAddDataBase={(newDtabaseName)=>{this.handleAddDataBase(newDtabaseName)}}
+                        setCurrentDatabase={(databaseKey)=>{this.setCurrentImageIndex(databaseKey)}}
+                    /> */}}
+                </div>
+                <div className="middlePage">
+                    <div className="buttons">                        
+                        <ImageUpload
+                            currentDatabase={this.state.currentDatabase}
+                            handleAddImageInDataBase={(database,img)=>{this.handleAddImageInDataBase(database,img)}}
+                        />
+                        <ImageDownload
+                            currentImage={this.state.currentImage}
+                            currentImageIndex={this.state.currentImageIndex}
+                            currentDatabaseName={this.state.currentDatabase?.Dbname}
+                            currentDatabaseID={this.state.currentDatabase?.id}
+                        />
+                    </div>
+                    <ImageCropper 
+                        currentImage={this.state.currentImage}
+                        currentImageIndex={this.state.currentImageIndex}
+                        currentDatabase={this.state.currentDatabase}
+                        setCurrentImage={(imgDataURL)=>{this.setCurrentImage(imgDataURL)}}
+                        handlePutCurrentImage={(currentDatabase,img,imgKey)=>{this.handlePutCurrentImage(currentDatabase,img,imgKey)}}
+                        />
+                    
+                </div>
+                <div className="rightBar">
+                    <ImageListContainer
+                        images={this.state.currentDatabase?.Images}
+                        imageIndex={this.state.currentImageIndex}
+                        currentDatabase={this.state.currentDatabase}
+                        setCurrentImageIndex={(imgKey)=>{this.setCurrentImageIndex(imgKey)}}
+                        handleRemoveImageInDataBase={(database,databaseKey)=>{this.handleRemoveImageInDataBase(database,databaseKey)}}
+                    />
+                    <DeleteDatabaseBuuttom
+                        currentDatabaseID={this.state.currentDatabase?.id}
+                        handleRemoveDataBase={(database)=>{this.handleRemoveDataBase(database)}}
+                    />
+                </div>
+            </div> 
         );
     }
 }
